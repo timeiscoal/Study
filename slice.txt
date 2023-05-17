@@ -1,0 +1,739 @@
+슬라이스
+
+슬라이스는 Go 언어에서 제공하는 동적 배열이다.
+동적 배열은 자동으로 배열 크기를 증가시키는 자료구조이다.
+또 슬라이싱 기능을 이용해 배열의 일부를 나타내는 슬라이스를 만들 수 있다.
+
+배열은 고정된 배열 크기 안에 동일한 타입의 데이터를 연속적으로 저장하지만, 배열의 크기를 동적으로
+증가시키거나 부분 배열을 발췌하는 등의 기능을 가지고 있지 않다.
+Go Slice는 배부적으로 배열에 기초하여 만들어졌지만 배열의 이런 제약점들을 넘어 개발자에게 편리하고
+유용한 기능들을 제공한다.
+슬라이스는 배열과 달리 고정된 크기를 미리 지정하지 않을 수 있고, 차후 그 크기를 동적으로 변경할 수 있다.
+
+정리:
+    size가 정해지지 않은 array는 slice.
+    arr와 slice는 메모리 할당 방식이 서로 다르고 같은 타입이 아니다.
+    슬라이스는 레퍼런스(참조) 타입.
+    내장된 배열에 대한 포인터이므로 슬라이스끼리 대입하면 값이 복사되지 않고 참조(레퍼런스)만 한다.
+
+슬라이스 선언
+일반적인 배열은 처음 배열을 만들 때 정한 길이에서 더 이상 늘어나지 않는 문제가 있다.
+
+<배열 선언>
+```Go
+
+var array [10]int
+
+```
+
+위 변수에서 10개보다 많은 값을 저장하려면 , 더 큰 배열을 만들어서 값을 하나씩 복사해야 한다.
+이러한 불편한 문제들은 슬라이스를 통해서 해결 할 수 있다.
+
+슬라이스는 배열과 비슷하지만 []안에 배열의 개수를 적지 않고! 선언한다.
+
+<슬라이스 선언>
+```Go
+
+var slice []int
+
+```
+
+슬라이스를 초기화하지 않으면 길이가 0인 슬라이스가 만들어진다.
+그래서 슬라이스 길이를 초기화해서 접근하면 런 타임 에러가 발생한다.
+
+```Go
+
+func main() {
+
+	var slice []int
+
+	if len(slice) == 0 {  // slice 길이가 0인지 확인.
+		fmt.Println(slice)
+	}
+
+	slice[1] = 10       // panic: runtime error: index out of range [1] with length 0
+	fmt.Println(slice)
+}
+
+```
+
+1. 슬라이스가 초기화되지 않아서 길이가 0이다. 그래서 [] 빈 값이 출력되는 것을 확인할 수 있다.
+2. 길이가 0인 slice의 두 번째 요소 값에 접근할 때 패닉이 발생한다.
+3. 에러가 발생한 원인은 할당되지 않은 메모리 공간에 접근해서 프로그램이 비정상 종료.
+4. 길이가 0인데 어떻게 인덱스 1로 접근이 가능하겠니?
+
+
+{}를 활용해 요소 값을 지정하여 초기화.
+
+```Go
+var slice1 = []int{1,2,3}        // 대괄호에 길이 넣으면 그냥 배열임;;; 주의 요망
+var slice2 = []int{1, 5:2, 10:3} // 순서대로 요소 값을 초기화 하거나,
+                                 // 해당 인덱스 위치에 값을 지정하여 초기화 할 수 있다.
+```
+
+slice2 -> [1 0 0 0 0 2 0 0 0 0 3]
+
+배열/슬라이스 선언 주의
+```Go
+var arr   = [...]int{1,2,3} //배열
+var slice = []int{1,2,3}    //슬라이스
+
+```
+
+make()를 활용한 초기화
+
+1. make()함수의 첫 번째 인자 : 타입
+2. make()함수의 두 번째 인자 : 길이
+
+```Go
+var slice = make([]int,3)
+// slice 변수는 길이 3개짜리 int 슬라이스 값을 갖는다.
+```
+
+슬라이스 요소 접근
+
+인덱스를 활용한 접근
+배열과 마찬가지로 []대괄호를 활용해 인덱스로 접근 및 데이터 할당
+
+```Go
+
+var slice = make([]int,3)
+slice[1] = 5
+// [0 5 0]
+
+```
+
+슬라이스 순회
+배열과 크게 다르지 않다.
+
+```Go
+
+func main() {
+
+	var slice = []int{1, 2, 3}
+
+	for i := 0; i < len(slice); i++ {
+
+		slice[i] += 10
+		fmt.Println("++", slice) // [11 12 13]
+	}
+
+	for i, v := range slice {
+
+		slice[i] = v * 2
+		fmt.Println("**", slice) // [22 24 26]
+	}
+
+}
+```
+
+슬라이스 요소 추가 : append()
+
+1. 기존 배열은 한 번 길이가 정해지면 늘릴 수 없다.
+2. 슬라이스는 요소를 추가해 길이를 늘릴 수가 있다.
+3. 요소 추가는 append() 내장 함수를 사용한다.
+4. append() 첫 번째 인수 : 슬라이스(이름)
+5. append() 두 번째 인수 : 슬라이스(요소)
+
+```Go
+
+func main() {
+
+	var slice = []int{1, 2, 3}
+	slice2 := append(slice, 4, 5, 6)
+
+	fmt.Println(slice)
+	fmt.Println(slice2)
+
+}
+
+```
+
+여러 요소 추가하기.
+
+1. 첫 번째 인수 : 슬라이스(이름)
+2. 두 번째 인수 ~ : 요소를
+
+주의 : append()는 첫 번째 인수로 들어온 슬라이스의 값을 변경하는 것이 아니라,
+      새로운 슬라이스를 반환한다.
+      그래서 기존 슬라이스에 요소를 추가하고 싶을 때 append() 결과를 기존 슬라이스에 대입하여 변경,
+
+```Go
+
+func main() {
+
+	var testSlice []int
+
+	for i := 1; i <= 10; i++ {
+		testSlice = append(testSlice, i)
+	}
+	fmt.Println(testSlice)  // [1 2 3 4 5 6 7 8 9 10]
+
+	testSlice = append(testSlice, 11, 12, 13, 14, 15)
+
+	fmt.Println(testSlice)  // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
+}
+
+```
+
+
+*중요
+
+슬라이스 동작 원리
+
+슬라이스 내부 정의
+
+1. 포인터 : 배열의 위치를 가리키는 pointer
+2. len  : 요소의 개수를 나타내는 len(length)
+3. cap  : 전체 배열 길이를 나타내는 cap(capacity) (용량)
+
+슬라이스가 실제 배열을 가리키는 포인터를 가지고 있어서, 쉽게 크기가 다른 배열을 가리키도록
+변경할 수 있고 , 슬라이스 변수 대입 시 배열에 비해서 사용되는 메모리나 속도에 이점.
+
+
+make() 함수를 이용한 선언
+
+```Go
+
+var slice = make([]int,3)
+// slice는 len 3, cap 3 : 총 배열 길이가 3, 요소 개수도 3
+
+
+var slice = make([]int,3,5)
+// slice는 len 3, cpa 5 : 총 배열 길이가 3, 요소 개수는 5
+
+```
+
+len, cap 함수를 통해서 슬라이스의 길이나 용량을 확인해 볼 수 있다.
+기본적으로 요소를 초기화하지 않으면 0으로 값이 채워진다.
+
+
+```Go
+func main() {
+
+	arr := []int{1, 2, 3, 4, 5, 6}
+
+	fmt.Println(len(arr)) // 6
+	fmt.Println(cap(arr)) // 6
+
+	testArr := make([]int, 3, 5)
+
+	fmt.Println(len(testArr))  // 3 
+	fmt.Println(cap(testArr))  // 5
+    fmt.Println(testArr) // [0 0 0]
+}
+
+```
+testArr는 배열의 길이(용량)은 5 , 요소의 개수는 3이며, 나머지 2개는 나중에 추가될 요소를 위해서 
+비워둔 상태이다.
+
+*****
+슬라이스와 배열의 동작 차이
+
+
+```Go
+func changeArray(array2 [5]int) {
+	array2[2] = 200
+}
+
+func changeSlice(slice2 []int) {
+	slice2[2] = 200
+}
+
+func main() {
+
+	array := [5]int{1, 2, 3, 4, 5}
+	slice := []int{6, 7, 8, 9, 10}
+
+	fmt.Println(array) // [1 2 3 4 5]
+	fmt.Println(slice) // [6 7 8 9 10]
+
+	changeArray(array) 
+	changeSlice(slice)  
+
+	fmt.Println(array) // [1 2 3 4 5]
+	fmt.Println(slice) // [6 7 200 9 10]
+}
+
+```
+
+slice는 2번 인덱스의 값이 변경된 것을 확인해 볼 수 있다.
+배열과 이렇게 차이가 나는 이유는 무엇인가.
+
+동작의 차이.
+
+Go 언어에서는 모든 값의 대입은 복사로 일어난다.
+함수에 인수를 전달 될때나, 다른 변수에 대입할 때나 값의 이동은 복사로 일어난다.
+
+이 복사는 타입의 값이 복사된다.
+1. 포인터 : 포인터의 값인 메모리 주소
+2. 구조체 : 구조체의 모든 필드 복사
+3. 배열 : 배열의 모든 값을 복사.
+
+
+changeArray() 함수가 호출 될 때를 살펴보면, 
+1. array 타입은 [5]int 
+2. 크기는 8 * 5 = 40Byte
+3. changeArray() 함수의 인수로 array를 입력해서 호출하면 array 값은 array2로 복사가 된다.
+4. 즉 array와 array2는 메모리 공간이 다른 완전히 다른 배열이라, array의 값을 변경해도 array배열은 
+   변경 x
+
+changeSlice() 함수가 호출 될 때를 살펴보면,
+1. array 타입은 []int
+2. []int 타입 -> 포인터,len,cap 세 개의 필드를 가지고 있는 구조체
+3. 포인터는 메모리 주소로 8바이트 길이, len, cap 각각 int 타입으로 8바이트
+4. 총 24바이트
+5. changeSlice()함수의 인수로 slice가 입력되어 호출 되면, slice 내부의 포인터가 가리키는
+   배열 크기에 상관없이 항상 총 24바이트 값이 복사 된다.
+
+6. slice 값이 slice2로 복사 되면 구조체의 각 필드 값이 복사되기 때문에 포인터의 메모리 주솟값도
+   복사되고 len, cap 값도 복사가 된다.
+7. 똑같은 메모리 주솟값을 가지기 때문에, slice와 slice2 모두 같은 배열 데이터를 가리킨다.
+8. changeSlice()함수에서 slice2의 세 번째 요솟값을 200으로 바꾸면 slice 역시 같은 배열을 가리키기
+   때문에 slice[2]값 또한 바뀌게 된다.
+
+
+append()를 사용할 때 발생하는 오류
+
+append()함수 동작
+1. append()함수가 호출되면 해당 슬라이스에서 값을 추가할 수 있는 빈 공간의 유무를 확인한다.
+2. 남은 빈 공간의 개수가 , 추가할 데이터의 개수보다 적다면 배열의 뒷부분에 값을 추가한 뒤에 len값을 증가시킨다
+
+```Go
+//남은 빈 공간 = cap - len
+
+```
+
+```Go
+func main() {
+
+	slice1 := make([]int, 3, 5)
+	slice2 := append(slice1, 4, 5)
+
+	fmt.Println(slice1) // [0 0 0]
+	fmt.Println(slice2) // [0 0 0 4 5]
+
+	slice2[1] = 99
+
+	fmt.Println(slice1) // [0 99 0]
+	fmt.Println(slice2) // [0 99 0 4 5]
+
+    slice2 = append(slice2, 6)
+	fmt.Println(slice2, len(slice2), cap(slice2)) // [0 99 0 4 5 6] 6 10
+
+}
+```
+1. slice2 의 1번째 인덱스 값을 변경시켰다.
+2. slice2의 값 일부분만 변경했으나, slice2도 같이 변경됨
+3. slice2의 용량(cap) 이상으로 값을 추가하니, 더블링되어 10만큼 늘어남.
+
+
+빈 공간이 없을 때, 값을 추가하는 경우.
+
+1. append() 함수가 호출 되면 먼저 빈공간 확인
+2. 빈공간이 없다면 새로운 , 더 큰 배열 (일반적으로 더블링: 2배 크기로 준비)
+3. 새로운 배열에 모두 복사.
+4. 새로운 배열에 복사 이후 맨 뒤에 새로운 값들을 추가한다.
+5. cap은 새로운 배열의 길이 값이 되고, len은 기존 길이에 추가한 개수 많은 더한 값이 되고, 포인터는
+   새로운 배열을 가리키는 슬라이스 구조체를 반환
+
+
+```Go
+func main() {
+
+	slice1 := []int{1, 2, 3}
+
+	slice2 := append(slice1, 4, 5)
+
+	slice1[1] = 100
+
+	fmt.Println(slice1) // [1 100 3]
+	fmt.Println(slice2) // [1 2 3 4 5]
+}
+```
+앞서 살펴본 방법과 크게 다르지 않은 것 같은데 , 어떤 차이점이 있는 것일까.
+
+append()함수가 호출 될 때 빈 공간을 우선 찾는 것이 포인트.
+
+앞서 살펴본 방법에서는 
+```Go
+빈 공간 - 추가할 요소 >= 0 
+```
+이었기 때문에 같은 메모리 공간을 가리키고 있었다.
+
+
+```Go
+빈 공간 - 추가할 요소 < 0
+```
+이렇게 된다면 새로운 메모리 공간을 할당 받는다!
+그렇게 되면 slice1이 메모리 주소가 만약 100번지라면
+새로 더블링 되어 할당 받는 메모리 공간은 100번지가 아닌 다른 공간일 것이다.
+그래서 서로 다른 메모리 공간을 가리키고 있기 때문에 값이 다르게 나온다.
+
+정리하자면 
+  cap - len - 추가 요소 >= 0 라면 아직까지는 같은 메모리 공간을 포인터가 가리키고 있다.
+
+
+슬라이싱
+
+1. 슬라이싱은 배열의 일부를 집어내는 기능.
+2. 슬라이싱 기능을 사용하면 그 결과로 슬라이스를 반환한다.
+3. 동작 | 슬라이싱  
+4. 결과 | 슬라이스 
+
+```Go
+// 배열[시작 인덱스:끝 인덱스]
+array[startIdx:endindex]
+```
+
+주의 : 끝 인덱스를 포함하지 않는다는 점을 유의하자.
+
+```Go
+func main() {
+
+	arr := []int{1, 2, 3, 4, 5, 6}
+
+	slice := arr[1:3]
+
+	fmt.Println(slice)
+}
+
+```
+
+```Go
+
+func main() {
+
+	arr := [6]int{1, 2, 3, 4, 5, 6}
+
+	slice := arr[1:3]
+
+	fmt.Println(slice, len(slice), cap(slice))  // [2 3] 2 5
+	fmt.Println(arr)  //  [1 2 3 4 5 6]
+
+	slice = append(slice, 300) 
+
+	fmt.Println(slice, len(slice), cap(slice))  // [2 3 300] 3 5
+	fmt.Println(arr)  // [1 2 3 300 5 6]
+}
+
+```
+1. 슬라이싱 arr[1:3] -> [2 3]
+2. len -> 2 , cap -> 5
+
+이러한 값이 나오는 이유는 
+포인터가 기준이 되기 때문이다.
+그리고 슬라이싱된 슬라이스에 append(slice,300)이 새로운 배열을 따로 만드는 것이 아닌, 인덱스 3의 위치
+값을 변경하게 된다.
+slice에 요소를 추가하게 되면 slice의 len은 2 이지만, cap은 5 이기 때문에 빈공간이 있다고 생각하고
+arr[3]의 요솟값을 변경시킨다.
+
+슬라이싱으로 배열 일부를 가리키는 슬라이스 만들기
+
+슬라이스는 배열의 일부를 나타내는 타입.
+슬라이스의 구성
+    1. pointer
+    2. len
+    3. cap
+
+1. 포인터는 값으로 메모리 주소를 가지고 있기 때문에, 얼마든지 배열의 중간을 가리킬 수 있다.
+2. len의 경우 포인터가 가리키는 메모리부터 일정 개수를 나타낸다.
+3. cap은 포인터가 가리키는 배열이 할당된 크기, 즉 안전하게 사용할 수 있는 남은 배열 개수를 나타낸다.
+
+저장공간 크기를 나타내는 cap은 배열의 총길이에서 시작 인덱스를 뺀 만큼 가지게 된다.
+
+
+슬라이스를 슬라이싱하기
+
+1. 슬라이싱 기능은 배열 뿐 아니라 슬라이스 일부를 집어낼 때도 사용할 수 있다.
+2. 첫 번째부터 슬라이싱하면 시작 인덱스 생략 가능 arr[:2]
+3. 마지막 인덱스를 포함한 슬라이싱의 경우 마지막 인덱스 생략 가능 arr[2:]
+4. 전체 슬라이싱 arr[:]
+
+```Go
+slice1 := []int{1,2,3,4,5}
+slice2 := slice1[1:2] //2
+
+```
+
+인덱스 3개로 슬라이싱해서 cap 크기 조절
+
+1. 슬라이싱을 할 때 인덱스 3개를 사용하게 되면 cap까지 조절할 수 있다.
+
+```Go
+slice[startIdx:endIdx:maxIdx]
+```
+
+시작 인덱스부터 끝인덱스 하나 전까지 집어내고, 최대인덱스까지만 배열을 사용한다.
+cap = maxIdx - startIdx
+
+```Go
+slice1 := []int{1,2,3,4,5}
+slice2 := slice1[1:3:4]
+
+```
+maxIdx의 의미는 몇 번째 인덱스까지 사용하겠다라는 의미를 가지고 있다.
+위 예시에서는 4번 인덱스까지 사용하겠다.
+
+
+슬라이스 복제
+슬라이스가 같은 배열을 바라보면서 발생하는 문제점들을 살펴볼 수 있었다.
+이러한 문제를 해결하기 위해서는 복제라는 방법이 있다.
+
+```Go
+
+func main() {
+
+	slice1 := []int{1, 2, 3, 4, 5}
+	slice2 := make([]int, len(slice1))
+
+	fmt.Println(slice2)  // [0 0 0 0 0]
+
+	for idx, value := range slice1 {
+		slice2[idx] = value
+		
+	}
+
+	fmt.Println(slice2) // [1 2 3 4 5]
+
+	slice1[1] = 100
+
+	fmt.Println(slice1) // [1 100 3 4 5]
+}
+
+```
+
+append() 함수로 코드 개선하기.
+
+```Go
+slice2 := append([]int{}, slice1...)
+// slice2 := append([]int{}, slice1[0],slice[1],slice[2],slice[3],slice[4])
+```
+
+배열이나, 슬라이스 뒤에 ...을 하면 모든 요솟값을 넣어준 것과 같다.
+
+
+
+copy() 함수로 개선
+
+```Go
+func copy (dst,src []Type)int
+
+```
+copy() 함수는 위와 같이 정의되는데, 
+1. 첫 번째 인수로 복사한 결과를 저장하는 슬라이스 변수를 넣고,
+2. 두 번째 인수로 복사 대상이 되는 슬라이스 변수를 넣는다.
+
+반환 값은 실제로 복사된 요소의 개수.
+
+```Go
+
+func main() {
+
+	slice1 := []int{1, 2, 3, 4, 5}
+	slice2 := make([]int, 3, 10)
+	slice3 := make([]int, 10)
+
+	cnt1 := copy(slice2, slice1)
+	cnt2 := copy(slice3, slice1)
+
+	fmt.Println(cnt1, slice2) // 3 [1 2 3]
+	fmt.Println(cnt2, slice3) // 5 [1 2 3 4 5 0 0 0 0 0]
+}
+
+
+```
+실제 복사되는 요소 개수는 목적지의 슬라이스 길이와 대상의 슬라이스 길이 중 작은 개수만큼 복사된다.
+
+slice2의 경우 len = 3
+그래서 복사된 요소도 3개.
+
+이를 다음과 같이 변경가능
+
+```Go
+slice2 := make([]int,len(slice1)) 
+copy(slice2,slice1) /// [1 2 3 4 5]
+
+```
+
+copy, append 성능 차이 거의 없음.
+
+
+요소 삭제
+
+1. 슬라이스 중간 요소를 삭제
+2. 중간요소 이후 값을 앞당겨, 삭제된 요소를 채운다.
+3. 그 후 맨 마지막 값 삭제
+
+```Go
+func main() {
+
+	slice := []int{1, 2, 3, 4, 5}
+	idx := 2 // 삭제할 인덱스 
+
+	for i := idx + 1; i < len(slice); i++ {
+		slice[i-1] = slice[i] // 한 칸씩 당기기
+	}
+	slice = slice[:len(slice)-1] // 마지막 요소 컷
+	fmt.Println(slice) // [1 2 4 5]
+}
+```
+
+append 함수로 개선
+
+```Go
+slice =append(slice[:idx], slice[idx+1:]...)
+
+```
+1. slice[:idx]는 slice 처음부터 idx 하나 전까지 집어낸 슬라이드. (지우고자 하는 인덱스 제외)
+2. slice[idx+1:]는 idx 하나 뒤의 값부터 끝까지 슬라이드 한 것.
+3. slice[idx+1:]는 [4,5,6] , append()함수로 [1,2] 슬라이드 뒤에 [4,5,6]을 붙인다.
+
+요소 추가
+
+1. 추가하고 싶은 요소를 슬라이스 맨 뒤에 추가.
+2. 맨 뒤 값부터는 삽입하려는 위치까지 한 칸씩 밀어준다.
+3. 삽입하는 위치의 값을 바꿔준다.
+
+```Go
+func main() {
+
+	slice := []int{1, 2, 3, 4, 5, 6}
+
+	// 맨 뒤에 요소 추가 : 추가하는 값은 중요하지 않아 임의로 0을 추가.
+	slice = append(slice, 0)
+
+	idx := 2
+
+	// 맨 뒤부터 추가하려는 위치까지 값을 하나씩 옮겨준다.
+	for i := len(slice) - 2; i >= idx; i-- {
+		fmt.Println(i)
+		slice[i+1] = slice[i]
+
+	}
+
+	// 값 변경
+	slice[idx] = 100
+
+	fmt.Println(slice)
+}
+
+```
+
+append()함수로 코드 개선하기
+
+```Go
+
+//slice = append(slice[:idx], append([]int{100},slice[idx:]...)...)
+
+func main() {
+
+	slice := []int{1, 2, 3, 4, 5, 6}
+
+	idx := 2
+
+	slice = append(slice[:idx], append([]int{100}, slice[idx:]...)...)
+
+	slice[idx] = 100
+
+	fmt.Println(slice)
+}
+
+```
+
+1. append가 중첩으로 사용되었다.
+2. slice[:idx]는 처음부터 삽입하는 위치까지 슬라이스. [1,2]
+3. []int{100}은 삽입하려는 값으로 100 한 개만 갖는 슬라이스
+4. slice[idx:]는 삽입하려는 위치부터 끝까지의 슬라이스.
+5. slice[idx:]는 [3,4,5,6]
+6. append() 함수로 []int{100}에 이 슬라이스를 합쳐서 [100,3,4,5,6]을 만든다.
+
+append() 함수로 [1,2]에 [100,3,4,5,6]을 합쳐서 만든다.
+
+불필요한 메모리 사용이 없도록 코드 개선하기
+
+[100,3,4,5,6]슬라이스는 임시 슬라이스.
+다음 메모리 청소 때 사라지기는 하지만, 불필요한 메모리가 사용됨
+
+```Go
+
+slice =append(slice,0)
+copy(slice[idx+1:],slice[idx:])
+slice[idx] = 100
+
+```
+
+1. slice 맨 뒤에 요소를 추가합니다.
+2. 내장 함수 copy()를 사용해서 슬라이스 값을 복사.
+
+첫 번째 인수는 복사하는 위치
+두 번째 인수는 복사하려는 대상
+
+
+```Go
+func main() {
+
+	slice := []int{1, 2, 3, 4, 5, 6}
+
+	idx := 2
+
+	slice = append(slice, 0)
+	copy(slice[idx+1:], slice[idx:])
+	slice[idx] = 100
+
+	fmt.Println(slice)
+}
+```
+
+slice[idx+1:]는 삽입하려는 위치 하나부터 다음 끝까지를 , slice[idx:] 위치부터 복사합니다.
+
+슬라이스 정렬
+
+Go 언어에서 기본 제공하는 sort 패키지를 사용해 슬라이스를 정렬
+
+```Go
+
+func main() {
+	s := []int{1, 5, 3, 4, 9, 0}
+	sort.Ints(s)
+	fmt.Println(s)
+}
+
+```
+
+1. sort 패키지의 Ints() 함수를 활용해 간단하게 []int 슬라이스를 정렬
+2. sort 패키지 Ints() 함수 대신 Float64s() 함수를 이용하면 Float64 슬라이스를 정렬할 수 있다.
+
+
+구조체 슬라이스 정렬
+
+앞서 Sort() 함수를 이용하기 위해서는 Len(), Less(), Swap() 세 메서드가 필요하다.
+이 메서드만 구현하면 우리가 정의한 구조체도 정렬 할 수 있다.
+
+```Go
+type Student struct {
+	Name string
+	Age  int
+}
+
+type Students []Student
+// 
+func (s Students) Len() int           { return len(s) }
+func (s Students) Less(i, j int) bool { return s[i].Age < s[j].Age }
+func (s Students) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+
+func main() {
+
+	s := []Student{
+		{"화랑", 31}, {"백두산", 52}, {"류", 42}, {"켄", 38}, {"성히니", 20},
+	}
+
+	sort.Sort(Students(s))
+	fmt.Println(s)
+}
+
+
+```
+
+1. []Studnet를 Students 타입으로 타입 변환 한 뒤 sort.Sort() 함수를 호출.
+2. Student는 이미 sort.Interface 메서드들을 포함하고 있기 때문에, sort.Sort() 인수로 사용 가능
