@@ -1,0 +1,745 @@
+# 2023-05-19
+
+자료구조 
+자료구조란 여러 데이터를 저장하는 구조를 말한다.
+배열, 슬라이스도 자료구조의 일종이다.
+
+1. 리스트
+2. 큐
+3. 스택
+4. 링
+5. 맵
+
+- 리스트 (linked list)
+
+리스트는 기본 자료구조로서 여러 데이터를 보관할 수 있다.
+
+배열과 가장 큰 차이점은 배열은 연속된 메모리에 데이터를 저장하는 반면, 리스트는 불연속된 메모리에 
+데이터를 저장한다.
+
+리스트는 각 데이터를 담고 있는 요소들을 포인터로 연결한 자료구조.
+요소들이 포인터로 연결됐다고 해서 링크드 리스트라고 부른다.
+
+```go
+type Element struct{  // 구조체
+	Value interface{}   // 데이터를 저장하는 필드
+	Next *Element       // 다음 요소의 주소를 저장하는 필드
+	Prev *Element       // 이전 요소의 주소를 저장하는 필드
+```
+
+1. Element는 리스트의 각 요소 데이터를 저장하는 구조체.
+2. Value는 실제 요소의 데이터를 저장하는 필드 , 빈 인터페이스로 어떤 타입 값도 저장 가능
+3. Next는 *Element 타입으로 다음 Element 인스턴스으 ㅣ메모리 주소를 가지고 있다.
+Next를 사용해 다음 요소 인스턴스로 접근 할 수 있다.
+이것을 포인터를 통해 연결했다고 말한다.
+4. 다음 요소뿐 아니라, 이전요소도 Prev 포인터로 가지고 있다.
+이것을 양방향 리스트라고 한다. (더블 링크드 리스트)
+
+Element 주소가 일관이 없지만, 포인터로 연결되어 논리적 연속성을 유지하는 것이 특징.
+
+리스트 기본 사용 방법
+
+```go
+func main() {
+	v := list.New() // 새로운 리스트 생성
+	e4 := v.PushBack(4) // 리스트 뒤에 요소 추가
+	e1 := v.PushFront(1) // 리스트 앞에 요소 추가
+
+	v.InsertBefore(3, e4) // e4 요소 앞에 요소 삽입
+	v.InsertAfter(2, e1)  // e1 요소 뒤에 요소 삽입
+
+	// 요소 순회
+
+	//fmt.Println(v.Front().Value) 1
+	//fmt.Println(v.Front().Next().Value) 2
+	//fmt.Println(v.Front().Next().Next().Value) 3
+	for e := v.Front(); e != nil; e = e.Next() {
+		fmt.Print(e.Value, " ")
+	}
+	// 후 처리문 e=e.Next()를 삭제하니, 무수한 1이...
+	fmt.Println()
+	// 요소 역순회
+	for e := v.Back(); e != nil; e = e.Prev() {
+		fmt.Print(e.Value, " ")
+	}
+	fmt.Println()
+}
+```
+
+1. 새로운 리스트 인스턴스를 만든다.
+list.New() 함수로 새로운 인스턴스를 만들어서 사용한다.
+2. PushBack() 메서드는 리스트 맨 뒤에 요소를 추가한다.
+Value가 4인 새 요소를 추가한다.
+추가된 요소를 나타내는 Element 인스턴스를 e4 변수로 나타낸다.
+3. PushFront() 메서드는 리스트 맨 앞의 요소를 추가한다.
+Value가 4인 e4 요소 앞에 Value가 1인 새 요소를 추가한다.
+역시 추가된 요소를 나타내는 Element 인스턴스를 e1 변수로 나타낸다.
+e1의 Next 포인터는 다음 요소인 e4 인스턴스를 가리키고, e4 Prev 포인터는 이전 요소인 e1 인스턴스를 가리킨다.
+4. InsertBefore() 메서드는 두 번째 인수로 입력된 요소 앞에 새 요소를 추가한다.
+e4를 인수로 받았으므로 e4 앞에 3이 추가된다.
+5. InsertAfter() 메서드는 두 번째 인수로 입력된 요소 뒤에 값을 추가한다.
+e1 뒤에 추가된다.
+
+Big-O 표기법
+
+알고리즘이 걸리는 시간의 최악의 경우를 나타내는 표기법.
+
+N개 요소를 처리하는 알고리즘의 처리 시간이 
+
+(aN^3)+(bN^2)+(c)
+
+상수를 제외한 최고 차항 O(N^3)을 표기하는 것.
+최악의 경우 N^3의 실수 배 만큼 소요되는 것을 의미한다.
+
+배열 맨 앞에 값을 추가할 때는 맨 뒤 요소부터 하나씩 뒤로 밀기 때문에 , 요소 개수가 많을 수록 더 많은 시간이 걸린다.
+
+그래서 aN+b의 관계를 갖는다.
+이런 경우 상수를 제외해 O(N)으로 표시한다.
+
+이 경우는 Big-O 표기법으로 O(1)이라고 표기한다.
+O(1)은 상수 시간이 걸린다는 의미이다.
+충분히 큰 요소 개수 N에 대하여 O(1) ≤ O(N)을 보장하기 때문에, 배열보다 리스트가 맨 앞에 요소를 추가할 때 더 빠르다.
+
+- 특정 요소 접근
+
+우선 배열 접근 방법
+
+배열에서 인덱스 이동 방식 → 배열 시작 주소 + (데이터 크기 * 인덱스)
+
+100번지 + 4바이트(int) * 3번 인덱스 = 112번지
+
+위 공식은 요소 개수와 상관없이 상수 시간이 걸리기 때문에 O(1)
+
+리스트
+리스트에서는 각 요소가 포인터로 연결되어 있기 때문에, 앞 요소들을 모두 거쳐야 네 번째 요소에 접근이 가능하다.
+
+네 번째 요소에 접근하려면 첫 번째 링크를 3번 타고 가야만 요소에 접근 할 수 있다.
+특정 요소에 접근하려면 N-1번 링크를 타야하기 때문에 O(N)
+
+| 행위 | 배열,슬라이스 | 리스트 |
+| --- | --- | --- |
+| 요소 삽입 | O(N) | O(1) |
+| 요소 삭제 | O(N) | O(1) |
+| 인덱스 요소 접근 | O(1) | O(N) |
+
+데이터 지역성
+
+데이터 지역성은 데이터가 밀접한 정도를 말한다.
+데이터 로컬리티라고도 하며, 배열과 리스트를 선택할 때 데이터 지역성을 고려해야 한다.
+
+컴퓨터는 연산 할 때 읽어온 데이터를 캐시라는 임시 저장소에 보관한다.
+이때 정확히 필요한 데이터 뿐만 아닌, 주변 데이터도 같이 가져온다.
+그래서 필요한 데이터가 인접해 있을수록 처리 속도가 빨라지는데, 이를 데이터 지역성이 좋다고 말한다.
+배열은 연속된 메모리로 이뤄진 자료구조이고, 리스트는 불연속이기 때문에, 배열이 리스트에 비해서 데이터 지역성이 월등하게 좋다.
+
+그래서 삽입과 삭제가 빈번하면 리스트가, 요소 수가 적으면 데이터 지역성 때문에 오히려 배열이 리스트 보다 더 효율 적이다.
+
+삽입과 삭제가 빈번할 때 요소 수에 따른 배열과 리스트 선택은 컴퓨터 성능과 프로그램 성격에 따라 다릅니다.
+
+큐 구현
+
+1. queue FIFO , 선입 선출 자료구조.
+2. 대표적으로 대기열이 있다.
+
+특징
+
+- 들어간 순서대로 순서가 유지
+- 새로운 요소는 항상 맨 뒤
+- 출력 값은 맨 앞에서 하나씩
+
+큐는 대기열 작업이나, 명령 큐처럼 순서가 유지되어야 하는 경우에 자주 사용된다.
+
+배열로 만들 경우, 요소를 빼낼 때 마다 O(N)의 성능이 필요합니다.
+리스트로 만들 경우에는 O(1)성능이 필요해, 리스트가 queue에 더 효율적인 경우가 많다.
+
+```go
+type Queue struct { // queue 구조체 정의
+	v *list.List
+}
+
+func (q *Queue) Push(val interface{}) { // 요소 추가
+	q.v.PushBack(val) 
+}
+
+func (q *Queue) pop() interface{} { // 요소 반환,삭제
+	front := q.v.Front()
+	if front != nil {
+		return q.v.Remove(front)
+	}
+	return nil
+
+}
+func NewQueue() *Queue {
+	return &Queue{list.New()}
+}
+
+func main() {
+	queue := NewQueue() // 새로운 큐
+	for i := 1; i < 5; i++ {  // 요소 입력
+		queue.Push(i)
+	}
+	v := queue.pop() // 요소 출력
+	for v != nil {
+		fmt.Printf("%v ->", v)
+		v = queue.pop()
+	}
+	fmt.Println()
+}
+```
+
+1. 리스트를 이용할 큐 구조체 정의
+2. 내부 필드로 리스트를 가지고 있어서 요소를 추가하거나, 삭제 할 때 리스트를 사용한다.
+3. Push() 메서드는 요소를 추가, 리스트의 PushBack() 메서드를 이용해서 맨 뒤에 요소를 추가한다. 빈 인터페이스를 이용하면 모든 타입의 데이터를 저장.
+4. Pop() 메서드는 맨 앞의 요소를 반환 하고 삭제한다.
+리스트 Front() 메서드는 맨 앞의 요소 인스턴스를 반환한다.
+만약 이 값이 nil이라면 리스트가 모두 비었다는 뜻이다.
+리스트가 모두 비었으면, nil을 반환하고 그렇지 않다면 리스트의 Remove() 메서드를 호출한다.
+Remove() 메서드는 리스트내에 요소를 삭제하고 그 요소의 값을 반환한다.
+5. NewQueue() 함수를 이용해서 새로운 큐 인스턴스를 만든다.
+큐 인스턴스를 만들 때 내부 리스트 필드도 list.New() 함수를 이용해서 초기화한다.
+6. for문을 이용해서 큐 에 요소를 추가한다.
+리스트에서 요소를 하나씩 빼내어 출력을 한다.
+리스트가 비어있지 않다면 pop 결과가 nil이 아니기 때문에 리스트가 모두 빌때까지 반복
+
+스택
+
+1. FILO, 선입후출 자료구조
+2. 가장 최근에 넣은 것부터 역순으로 출력
+3. 요소는 맨 뒤로 추가가 되며, 출력도 맨 뒤에서 부터 출력된다.
+
+```go
+type Stack struct {
+	v *list.List
+}
+
+func NewStack() *Stack {
+	return &Stack{list.New()}
+}
+
+func (s *Stack) Push(val interface{}) {
+	s.v.PushBack(val)
+}
+
+func (s *Stack) Pop() interface{} {
+	back := s.v.Back()
+	if back != nil {
+		return s.v.Remove(back)
+	}
+	return nil
+}
+
+func main() {
+	stack := NewStack()
+	for i := 1; i < 5; i++ {
+		stack.Push(i)
+	}
+
+	val := stack.Pop()
+	for val != nil {
+		fmt.Printf("%v -> ", val)
+		val = stack.Pop()
+	}
+	fmt.Println()
+}
+```
+
+스택은 요소의 추가와 삭제가 항상 맨 뒤에서 발생하기 때문에, 배열로 만들어도 성능에 손해가 없다.
+
+보통 큐는 리스트, 스택은 배열로 구현한다.
+
+- 링
+1. 링은 맨 뒤의 요소와 맨 앞의 요소가 서로 연결된 자료구조.
+2. 리스트를 기반으로 만들어진 자료구조로, 원형으로 연결되어 있기 때문에 환형 리스트라고 부른다.
+3. 링 자료구조에서는 시작도 끝도 없으며, 현재 위치가 있다.
+
+```go
+func main() {
+	r := ring.New(5)
+
+	n := r.Len()
+
+	for i := 0; i < n; i++ {
+		r.Value = 'A' + i
+		r = r.Next()
+
+	}
+
+	for j := 0; j < n; j++ {
+		fmt.Printf("%c", r.Value)
+		r = r.Next()
+	}
+
+	fmt.Println()
+
+	for j := 0; j < n; j++ {
+		fmt.Printf("%c", r.Value)
+		r = r.Prev()
+	}
+	fmt.Println()
+}
+```
+
+링은 저장할 개수가 고정되고, 오래된 요소는 지워도 되는 경우에 적합하다.
+예 ) MS 워드 Ctrl + z 를 눌러야 실행 취소를 할 수 있다.
+
+이 기능을 지원하려면 지금가지 내용을 보관하고 있어야 한다.
+
+링은 다음과 같은 경우 사용이 된다.
+
+1. 실행 취소 기능 : 문서 편집기 등에서 일정한 개수의 명령을 저장하고 실행 취소하는 경우
+2. 고정크기 버퍼 기능 : 데이터에 따라 버퍼가 증가되지 않고 고정된 길이로 사용할 때
+3. 리플레이 기능: 게임 등에서 최근 플레이 10초를 다시 리플레이할 때와 같이 고정된 길이 리플레이 기능을 제공할 때
+
+- 맵
+
+맵(map)은 키와 값 형태로 데이터를 저장하는 자료구조이다.
+언어에 따라, 딕셔너리, 해시테이블, 해시맵 등으로 부른다.
+
+Go에서는 map이라고 부른다.
+
+- Key, Value값의 쌍으로 데이터를 저장하고, 키를 사용해 접근
+- 리스트나 링과 달리 container 패키지가 아닌 Go 기본 내장 타입.
+
+```go
+func main() {
+	m := make(map[string]string)
+	m["최강록"] = "서울시"
+	m["김강민"] = "부산시"
+	m["황철순"] = "울산시"
+	m["명현만"] = "포항시"
+	m["박정석"] = "경산시"
+	m["이상혁"] = "구미시"
+
+	fmt.Printf("%s\n", m["최강록"])
+	fmt.Println(m)
+
+	for key, value := range m {
+		fmt.Println(key, value)
+
+	}
+}
+```
+
+```go
+make() 함수로 맵을 만든다.
+// key타입 , value 타입
+make(map[key]value)
+make(map[string]string)
+```
+
+```go
+type Product struct {
+	Name  string
+	Price int
+}
+
+func main() {
+	m := make(map[int]Product)
+
+	m[22] = Product{"볼펜", 1200}
+	m[11] = Product{"연필", 300}
+	m[33] = Product{"책상", 90000}
+	m[55] = Product{"물감", 5000}
+	m[44] = Product{"필통", 3000}
+
+	for key, value := range m {
+		fmt.Println(key, value)
+		fmt.Println(value.Price)
+		fmt.Println(value.Name)
+	}
+}
+```
+
+출력 결과를 확인해보면, 입력한 순서와 다르다.
+그렇다고 키 값이 정렬된 것도 아니다.
+이는 맵 내부에서 요소를 보관할 때 입력한 순서와도 키 값과 상관 없이 데이터를 보관한다.
+
+- 요소 삭제
+
+```go
+// 맵 변수 , 삭제 키
+delete(m,key)
+```
+
+delete() 함수로 요소를 삭제한다.
+맵 변수와 삭제할 키 값을 차례로 넣으면 해당 요소를 맵에서 삭제한다.
+요소를 조회할 때 키에 알맞는 요소가 없으면 값 타입의 기본값을 반환한다.
+
+delete(m,key)
+
+```go
+func main(){
+	m:= make(map[int]int)
+	m[1]=0
+	m[2]=2
+	m[3]=3
+	fmt.Println(m)
+	delete(m,3)
+	delete(m,4) // 없는 요소 삭제 시도
+	fmt.Println(m[3]) // 삭제된 요소값 출력
+	fmt.Println(m[1])
+}
+// 0
+// 0
+```
+
+- 이미 삭제된 m[3]를 출력한다. 기본 값인 0
+- 없는 요소를 삭제하려는 시도를 할 경우 아무런 동작 없음
+- 값이 0일 때와, 요소가 없을 때 모두 0으로 출력한다.
+
+값이 0일 때, 요소가 없을 때 모두 0을 반환한다면, 진짜 값인지 아닌지 판별법
+
+map은 반환 값을 하나, 혹은 둘로 받을 수 있다.
+하나로 받는 것은 값을 반환 받고, 둘로 받는 것은 값과 존재여부(불리안)을 반환한다.
+
+```go
+v, ok := m[3]
+```
+
+맵 , 배열 , 리스트 속도 비교
+
+1. 맵은 속도가 매우 빠르다.
+삭제,추가,읽기에서 요소 개수와 상관없이 속도가 일정하다.
+2. 배열은 조회Good, 삭제,추가 O(n)
+3. 리스트는 조회O(n),삭제,추가O(1)
+
+맵은 key,value 쌍으로만 동작하기 때문에, 인덱스 접근을 할 수 없고, 입력한 순서가 보장되지 않는다.
+상대적으로 리스트와 배열의 메모리 소모가 많다.
+
+|  | 배열,슬라이스 | 리스트 | 맵 |
+| --- | --- | --- | --- |
+| 추가 | O(N) | O(1) | O(1) |
+| 삭제 | O(N) | O(1) | O(1) |
+| 읽기 | O(1) - 인덱스 접근 | O(N)  - 인덱스 접근 | O(1) - 키로 접근 |
+
+- 맵의 원리
+
+해시 함수의 이해가 중요하다.
+맵을 다른 말로 해시맵 또는 해시테이블이라고 부르기도 한다.
+
+해시 함수
+해시(hash)란 잘게 부순다는 의미이다.
+
+3가지 특징을 만족해야 해시 함수라고 부른다
+
+1. 같은 입력이 들어오면 같은 결과가 나온다
+2. 다른 입력이 들어오면 되도록 다른 결과가 나온다
+3. 입력값의 범위는 무한대이고, 결과는 특정 범위를 갖는다.
+
+해시로 맵을 만들어보자.
+
+1. 해시 함수는 결과값이 항상 일정한 범위(개수)를 가진다.
+2. 같은 입력에서는 같은 결과를 보장하고, 일정 범위에서 반복된다.
+3. 이러한 특징들을 고려하면 범위와 같은 요소 개수를 갖는 배열이 적절하다.
+
+나머지 연산으로 맵 만들기
+
+```go
+// 해쉬 함수 정의
+const M = 10
+
+func hash(d int) int {
+	return d % M
+}
+func main() {
+	m := [M]int{}     // 값을 저장하는 배열 생성
+	m[hash(23)] = 10  // key 23에 10 값
+	m[hash(259)] = 50 // key 259에 50 값 설정
+
+	fmt.Println(m) // [0 0 0 10 0 0 0 0 0 50]
+	fmt.Printf("%d=%d\n", 23, m[hash(23)])
+	fmt.Printf("%d=%d\n", 259, m[hash(259)])
+}
+// [0 0 0 10 0 0 0 0 0 50]
+// 23 = 10
+// 259 = 50
+```
+
+해시 함수로 배열 인덱스를 계산해서 해당하는 인덱스 위치에 값을 저장한다.
+하지만 단점은, 중복이 되는 경우, 충돌이 발생했을 때는 어떻게 하면 좋을까
+
+1. 가장 단순한 방법은 , 인덱스 위치마다 값이 아니라 리스트를 저장하는 것이다.
+리스트로 저장하면 기존 값을 보존할 수 있고, 값을 읽을 때 해당 인덱스에 링크된
+모든 리스트를 조사해 매칭되는 키의 값을 반환하면 해시 충돌문제에서 벗어날 수 있다.
+
+해시 함수는 요소 개수와 상관없이 고정된 시간을 갖는 함수이기 때문에, 해시 함수를 사용하는 맵이 읽기 쓰기에 O(1)의 시간값을 가지게 된다.
+또 키가 크다고 해서 해시 결과값이 커지는게 아니기 때문에, 맵은 키와 무관하고 입력 순서와도 무관한 순서로 순회하게 된다.
+
+- 에러 핸들링
+
+에러 핸들링(error handling)은 프로그램의 에러를 처리하는 방법.
+
+함수에서 에러를 반환하여 처리 할 수 있다.
+오류를 사전에 빠르게 인지하여 수정이 가능하다
+복구 가능한 오류를 복구하여 안정적인 프로그램을 만들 수 있다.
+
+에러 반환
+
+에러를 처리하는 가장 기본 방식은 에러를 반환하고 알맞게 처리하는 방식이다.
+
+예) Readfile() 함수로 파일을 읽을 때 해당하는 파일이 없어 에러가 발생한다.
+이때 프로그램을 강제 종료되는 것보다, 적절한 메세지를 출력하고, 다른파일을 읽거나
+임시 파일을 생성한다면 사용자 경험이 좋을 것이다.
+
+```go
+func ReadFile(filename string) (string, error) {
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	rd := bufio.NewReader(file)
+	line, _ := rd.ReadString('\n')
+	return line, nil
+}
+
+func WriteFile(filename string, line string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = fmt.Fprintln(file, line)
+	return err
+
+}
+
+const filename string = "data.txt"
+
+func main() {
+	line, err := ReadFile(filename)
+	if err != nil {
+		err = WriteFile(filename, "This is WriteFile")
+		if err != nil {
+			fmt.Println("파일 생성에 실패함", err)
+			return
+		}
+		line, err = ReadFile(filename)
+		if err != nil {
+			fmt.Println("파일 읽기에 실패함", err)
+			return
+		}
+	}
+	fmt.Println(line)
+}
+```
+
+- 사용자 에러 반환
+
+직접 에러를 만들어서 반환하는 방법
+
+fmt.Errorf() 함수를 사용해서 에러를 반환.
+fmt 패키지의 Errorf() 함수를 이용하면 원하는 에러 메세지를 만들 수 있다.
+
+```go
+func Sqrt(f float64) (float64, error) {
+
+	if f < 0 {
+		return 0, fmt.Errorf("제곱근은 양수여야 한다.f:%g", f)
+	}
+	return math.Sqrt(f), nil
+}
+
+func main() {
+	sqrt, err := Sqrt(-2)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+	fmt.Printf("Sqrt(-2) = %v\n", sqrt)
+}
+```
+
+```go
+func New(text string) error
+```
+
+```go
+import "errors"
+errors.New("에러 메시지")
+```
+
+- 에러 타입
+
+error는 인터페이스로 문자열을 반환하는 Error() 메서드로 구성되어 있다.
+
+```go
+type error interface{
+	Error() string
+}
+```
+
+즉 어떤 타입이든 문자열을 반환하는 Error() 메서드를 포함하고 있다면, 에러로 사용할 수 있다.
+이를 활용하면 더 많은 정보를 포함시킬 수 있다.
+
+회원 가입 시 암호 길이를 검사하는 예제.
+
+```go
+type PasswordError struct {
+	Len        int
+	RequireLen int
+}
+
+func (err PasswordError) Error() string {
+	return "암호 길이가 짧습니다."
+}
+
+func RegisterAccount(name, password string) error {
+	if len(password) < 8 {
+		fmt.Println(PasswordError{})
+		return PasswordError{len(password), 8}
+	}
+	return nil
+}
+
+func main() {
+	err := RegisterAccount("myID", "myPw")
+	fmt.Println(err)
+	if err != nil {
+		if errInfo, ok := err.(PasswordError); ok {
+			fmt.Printf("%v Len:%d RequireLen:%d\n",
+				errInfo, errInfo.Len, errInfo.RequireLen)
+		}
+	} else {
+		fmt.Println("회원 가입 됐습니다.")
+	}
+}
+```
+
+패닉
+
+패닉(panic)은 프로그램을 정상적으로 진행시키기 어려운 상황을 만났을 때, 프로그램 흐름을 중지시키는 기능이다.
+
+Go언어는 내장 함수 panic()으로 패닉 기능을 제공한다.
+
+지금까지 error 인터페이스를 사용해 에러 처리를 했다.
+error 인터페이스를 사용하면 호출자에게 에러가 발생한 이유를 알려줄 수 있다.
+
+하지만 프로그램을 수행하다 보면 예기치 못한 에러에 직면하기도 한다.
+
+예) 버그가 발생해 잘못된 메모리 접근, 혹은 메모리 부족하면 프로그램이 더이상 실행이 불가능할 수 도 있다.
+이럴 때는 프로그램을 강제 종료해서 문제를 빠르게 파악하는 편이 나을 수 있다.
+
+panic() 함수를 사용하면 문제 발생 시점에 프로그램을 바로 종료시켜서 빠르게 문제 발생 시점을 알 수 있다.
+
+버그 수정에 유용한 방식이다.
+painc()함수를 이용해서 패닉을 발생시키거나, 슬라이스 길이를 넘서 접근하면 Go 내부에서 패닉이 발생하기도 한다.
+
+painc() 내장 함수를 호출하고 인수로 에러 메세지를 입력하면 프로그램을 즉시 종료하고 에러 메세지를 출력하고, 함수 호출 순서를 나타내는 콜 스택을 표시한다.
+
+```go
+func divide(a, b int) {
+	if b == 0 {
+		panic("b는0일수없다")
+	}
+	fmt.Printf("%d / %d = %d\n", a, b, a/b)
+}
+func main() {
+	divide(9, 3)
+	divide(9, 0)
+}
+```
+
+패닉 생성
+앞서 예제와 같이 패닉은 내장 함수 painc()을 사용해서 발생시킬 수 있다.
+아래는 painc() 함수 선언.
+
+```go
+func painc(interface{})
+```
+
+위와 같이 painc() 내장 함수로 interface{} 타입 즉 모든 타입을 사용할 수 있다.
+그래서 아래 구문 모두 가능
+
+```go
+painc(42)
+painc("unreachable")
+painc(fmt.Errorf("This is error num:%d",num))
+painc(SomeType{SomeData})
+```
+
+일반적으로 string 타입 메세지나 fmt.Errof() 함수를 이용해서 만들어진 에러 타입을 주로 사용한다.
+
+패닉 전파, 복구
+
+프로그램 개발 할 때는 빠르게 문제점을 파악하고 수정하는 것이 중요하다.
+
+하지만 사용자에게 프로그램이 전달되고 난 뒤에는, 문제가 발생하더라도, 프로그램이 종료되는 대신 에러 메세지를 표시하고 복구를 시도하는 게 더 나은 선택일 수도 있다.
+
+게임을 하는 데 게임이 시도 때도 없이 종료되면 곧바로 게임을 삭제할것 아니냐?
+
+사용자에게 프로그램이 배포된 이후에는 복구 할 수 있는 패닉이라면 복구를 시도하는 것이 좋다.
+
+painc은 호출 순서를 거슬러 올라가며 전파된다.
+호출 과정이 만약 : main→f→g→h (h()에서 패닉발생)
+
+패닉이 발생하면 : g→f→main 순으로 전달
+
+main() 함수에서까지 복구되지 않으면 프로그램이 그제서야 강제 종료된다.
+
+어느 단계에서든 패닉은 복구된 시점부터 프로그램이 계속된다.
+recover() 함수를 호출해 패닉을 복구 할 수 있다.
+
+recover() 함수가 호출 되는 시점에 패닉이 전파 중이면 panic 객체를 반환하고 그렇지 않으면 nil을 반환한다.
+
+패닉 전파되는 경로를 파악하고 패닉을 복구하는 예제
+
+```go
+func f() {
+	fmt.Println("f() 함수 시작")
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("painc 복구 -", r)
+		}
+	}()
+	g()
+	fmt.Println("f() 함수 끝")
+}
+
+func g() {
+	fmt.Printf("9/3 =%d\n", h(9, 3))
+	fmt.Printf("9/0 =%d\n", h(9, 0))
+}
+
+func h(a, b int) int {
+	if b == 0 {
+		panic("제수는 0일 수 없다")
+	}
+	return a / b
+}
+func main() {
+	f()
+	fmt.Println("프로그램이 계속 실행 된다")
+}
+// f() 함수 시작
+// 9/3 =3
+// painc 복구 - 제수는 0일 수 없다
+// 프로그램이 계속 실행 된다
+```
+
+recover()는 제한적으로 사용하는 것이 좋다.
+패닉이 발생되면 그 즉시호출 순서를 역순으로 전파하기 때문에, 복구가 되더라도
+프로그램이 불안정할 수 있다.
+
+- recover() 결과
+
+내장 함수 recover()는 발생한 painc 객체를 반환해준다.
+아래는 recover() 함수 선언
+
+```go
+func recover() interface{}
+```
+
+앞서 painc() 함수 인수로 interface{} 타입 즉 모든 타입이 가능했듯이, 발생한 panic 객체를 반환하는 recover() 역시 interface{} 타입을 반환한다.
+
+그래서 recover()로 반환한 타입을 실제 사용하려면 다음과 같이 타입검사를 해야한다.
+
+```go
+if r,ok :=recover().(net.Error);ok{
+	fmt.Println("r is net.Error type")
+}
+```
+
+이 구문은 발생한 패닉이 net.Error 타입인지 검사해서 처리하는 구문이다.
+발생한 패닉이 특정 타입인지 확인해서 해당 타입 패닉에 대한 처리를 추가하고 싶은 경우, 같은 구문을 사용해서 타입 검사를 해야 한다.
