@@ -1,27 +1,25 @@
 package main
 
 import (
-	"fmt"
-	"sort"
+	"test/go_goroutine"
+	"test/study_client"
+	"test/study_server"
 )
-
-type Student struct {
-	Name string
-	Age  int
-}
-
-type Students []Student
-
-func (s Students) Len() int           { return len(s) }
-func (s Students) Less(i, j int) bool { return s[i].Age < s[j].Age }
-func (s Students) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 func main() {
 
-	s := []Student{
-		{"화랑", 31}, {"백두산", 52}, {"류", 42}, {"켄", 38}, {"성히니", 20},
+	a := 3
+
+	switch a {
+	case 1:
+		study_client.ClientHandler()
+	case 2:
+		study_server.ServerHanlder()
+	case 3:
+		//go_goroutine.TestGo()
+		//go_goroutine.TestGo2()
+		//go_goroutine.TestGo3()
+		go_goroutine.Testgo4()
 	}
 
-	sort.Sort(Students(s))
-	fmt.Println(s)
 }
